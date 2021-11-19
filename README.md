@@ -1,25 +1,34 @@
 # Belief Propagation
 
-This repo is aimed at providing an example implementation of belief propagation on Tanner graphs.
+This repo is aimed at providing an example implementation of belief propagation on Tanner graphs as used by a standard
+LDPC decoder.
+
+If you see bug, wish suggest something or contribute please open an [issue](./issues/new/choose).
+Alternatively you can also contact me via [email](mailto:yairmazal@gmail.com?subject=[GitHub]%20Belief%20Propagation).
 
 ---
 
 ## API
+
+### Nodes
+
 One can create nodes (either variable or check nodes) via:
 ```python
-from belief_propagation import VNode, CNode
-v = VNode(name="v0")  # node name is optional
+from belief_propagation import VNode, CNode, bsc_llr
+v = VNode(name="v0", channel_model=bsc_llr(0.1))
 c = CNode(name="c0")
 ```
 
-Creating a graph either from existing nodes, or new ones
+### Graphs
+
+Creating a graph:
 ```python
-from belief_propagation import TannerGraph
+from belief_propagation import TannerGraph, bsc_llr
 import numpy as np
 tg = TannerGraph()
 # add 10 variable nodes
 for i in range(10):
-    tg.add_v_node(name="v"+str(i))
+    tg.add_v_node(name="v"+str(i), channel_model=bsc_llr(0.1))
 # add 5 check nodes
 for i in range(5):
     tg.add_c_node(name="c"+str(i))
@@ -34,7 +43,7 @@ H = np.array([[1, 1, 1, 1, 0, 0, 0, 0, 0, 0],
               [0, 1, 0, 0, 1, 0, 0, 1, 1, 0],
               [0, 0, 1, 0, 0, 1, 0, 1, 0, 1],
               [0, 0, 0, 1, 0, 0, 1, 0, 1, 1]])
-tg = TannerGraph.from_biadjacency_matrix(H)
+tg = TannerGraph.from_biadjacency_matrix(H, channel_model=bsc_llr(0.1))
 ```
 
 A graph may also be converted into a [NetworkX](https://networkx.org/) 
@@ -43,14 +52,14 @@ object. It can then be easily plotted using
 [NetworkX Draw](https://networkx.org/documentation/stable/reference/drawing.html), or 
 [PyVis](https://pyvis.readthedocs.io/en/latest/index.html).
 ```python
-from belief_propagation import TannerGraph
+from belief_propagation import TannerGraph, bsc_llr
 import numpy as np
 H = np.array([[1, 1, 1, 1, 0, 0, 0, 0, 0, 0],
               [1, 0, 0, 0, 1, 1, 1, 0, 0, 0],
               [0, 1, 0, 0, 1, 0, 0, 1, 1, 0],
               [0, 0, 1, 0, 0, 1, 0, 1, 0, 1],
               [0, 0, 0, 1, 0, 0, 1, 0, 1, 1]])
-tg = TannerGraph.from_biadjacency_matrix(H)
+tg = TannerGraph.from_biadjacency_matrix(H, channel_model=bsc_llr(0.1))
 g = tg.to_nx()
 
 import networkx as nx
@@ -65,4 +74,30 @@ nx.draw_networkx(g,
                  labels=labels)
 fig.show()
 ```
-![example_graph](example_graph.png)
+![example_graph](./examples/example_graph.png)
+
+### Belief Propagation
+```python
+from belief_propagation import BeliefPropagation, TannerGraph, bsc_llr
+import numpy as np
+# consider a parity check matrix
+H = np.array([[1, 1, 1, 1, 0, 0, 0, 0, 0, 0],
+              [1, 0, 0, 0, 1, 1, 1, 0, 0, 0],
+              [0, 1, 0, 0, 1, 0, 0, 1, 1, 0],
+              [0, 0, 1, 0, 0, 1, 0, 1, 0, 1],
+              [0, 0, 0, 1, 0, 0, 1, 0, 1, 1]])
+
+# Use it to construct a Tanner graph. Assume a BSC channel model with probability p=0.1  ofr bit flip
+model = bsc_llr(0.1)
+tg = TannerGraph.from_biadjacency_matrix(H, channel_model=model)
+
+# let us assume the codeword [1,1,0,0,1,0,0,0,0,0] was sent, but due to a channel error the last bit got flipped
+c = np.array([1, 1, 0, 0, 1, 0, 0, 0, 0, 1])
+# consequently we get initially H.dot(c) % 2
+# array([0, 0, 0, 1, 1])
+
+# let us try to correct the error
+bp = BeliefPropagation(tg, H, max_iter=10)
+estimate, llr, decode_success = bp.decode(c)
+# You can see that the error is corrected
+```

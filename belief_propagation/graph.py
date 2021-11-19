@@ -3,6 +3,7 @@ import networkx as nx
 from .node import VNode, CNode
 import numpy as np
 import numpy.typing as npt
+from typing import Callable
 
 
 class TannerGraph:
@@ -11,23 +12,20 @@ class TannerGraph:
         self.c_nodes: dict[int, CNode] = {}
         self.edges = set()
 
-    def add_v_node(self, name: str = "", node: VNode = None) -> VNode:
+    def add_v_node(self, name: str, channel_model: Callable) -> VNode:
         """
         :param name: names must be unique.
-        :param node: add an exiting node to graph. If not used a new node is created.
+        :param channel_model: add an exiting node to graph. If not used a new node is created.
         """
-        if node is None:
-            node = VNode(name)
+        node = VNode(name, channel_model)
         self.v_nodes[node.uid] = node
         return node
 
-    def add_c_node(self, name: str = "", node: CNode = None) -> CNode:
+    def add_c_node(self, name: str) -> CNode:
         """
         :param name: names must be unique
-        :param node: add an exiting node to graph. If not used a new node is created.
         """
-        if node is None:
-            node = CNode(name)
+        node = CNode(name)
         self.c_nodes[node.uid] = node
         return node
 
@@ -85,15 +83,16 @@ class TannerGraph:
         return g
 
     @classmethod
-    def from_biadjacency_matrix(cls, h: npt.ArrayLike) -> TannerGraph:
+    def from_biadjacency_matrix(cls, h: npt.ArrayLike, channel_model: Callable) -> TannerGraph:
         """
+        :param channel_model: channel model to compute channel symbols llr within v nodes
         :param h: parity check matrix, shape MXN with M check nodes and N variable nodes. assumed binary matrix.
         """
         g = TannerGraph()
         h = np.array(h)
         m, n = h.shape
         for i in range(n):
-            g.add_v_node(name="v" + str(i))
+            g.add_v_node(name="v" + str(i), channel_model=channel_model)
         for j in range(m):
             g.add_c_node(name="c" + str(j))
             for i in range(n):
@@ -104,3 +103,6 @@ class TannerGraph:
     def __str__(self) -> str:
         return "Graph with " + str(len(self.c_nodes) + len(self.v_nodes)) + " nodes and " + str(len(self.edges)) + \
                " edges"
+
+    def ordered_v_nodes(self) -> list[VNode]:
+        return sorted(self.v_nodes.values())

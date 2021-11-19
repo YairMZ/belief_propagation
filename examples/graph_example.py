@@ -1,10 +1,10 @@
-from belief_propagation import TannerGraph
+from belief_propagation import TannerGraph, bsc_llr
 from networkx.algorithms import bipartite
 
 tg = TannerGraph()
 # add 10 variable nodes
 for i in range(10):
-    tg.add_v_node(name="v"+str(i))
+    tg.add_v_node(name="v"+str(i), channel_model=bsc_llr(0.1))
 # add 5 check nodes
 for i in range(5):
     tg.add_c_node(name="c"+str(i))
@@ -20,14 +20,14 @@ g = tg.to_nx()
 H = bipartite.biadjacency_matrix(g, list(tg.c_nodes.keys()), column_order=tg.v_nodes.keys()).toarray()
 
 # or construct from matrix
-tg2 = TannerGraph.from_biadjacency_matrix(H)
+tg2 = TannerGraph.from_biadjacency_matrix(H, channel_model=bsc_llr(0.1))
 
 
 import networkx as nx
 import matplotlib.pyplot as plt
 fig = plt.figure()
 top = nx.bipartite.sets(g)[0]
-labels = {node: d["label"] for node,d in g.nodes(data=True)}
+labels = {node: d["label"] for node, d in g.nodes(data=True)}
 nx.draw_networkx(g,
                  with_labels=True,
                  node_color=[d["color"] for d in g.nodes.values()],

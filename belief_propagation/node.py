@@ -2,20 +2,27 @@ from __future__ import annotations
 import numpy as np
 import itertools
 from typing import Any, Callable
+from functools import total_ordering
+from abc import ABC, abstractmethod
 
 
-class Node:
+@total_ordering
+class Node(ABC):
+    """Base class VNodes anc CNodes.
+    Derived classes are expected to implement an "initialize" and  method a "message" which should return the message to
+    be passed on the graph.
+    Nodes are ordered and deemed equal according to their name.
+    """
     _uid_generator = itertools.count()
 
-    def __init__(self, name: str = "") -> None:
+    def __init__(self, name: str) -> None:
         """
-        :param name: optional name of node
+        :param name: name of node
         """
         self.name = name
         self.uid = next(Node._uid_generator)
         self.neighbors: dict[int, Node] = {}
         self.received_messages: dict[int, Any] = {}  # keys as senders, values as messages
-        self.likelihood = None
 
     def register_neighbor(self, neighbor: Node) -> None:
         self.neighbors[neighbor.uid] = neighbor
@@ -33,11 +40,26 @@ class Node:
         for node_id, node in self.neighbors.items():
             self.received_messages[node_id] = node.message(self.uid)
 
+    @abstractmethod
     def message(self, requester_uid: int) -> Any:
+        pass
+
+    @abstractmethod
+    def initialize(self):
         pass
 
     def __hash__(self):
         return self.uid
+
+    def __eq__(self, other):
+        if not isinstance(other, Node):
+            return NotImplemented
+        return self.name == other.name
+
+    def __lt__(self, other):
+        if not isinstance(other, Node):
+            return NotImplemented
+        return self.name < other.name
 
 
 class CNode(Node):
@@ -49,14 +71,15 @@ class CNode(Node):
         def phi(x):
             return -np.log(np.tanh(x/2))
         q = np.array([msg for uid, msg in self.received_messages.items() if uid != requester_uid])
-        return np.prod(np.sign(q))*phi(np.sum(phi(q)))
+        msg = np.prod(np.sign(q))*phi(np.sum(phi(np.absolute(q))))
+        return msg
 
 
 class VNode(Node):
-    def __init__(self, channel_model: Callable,name: str = ""):
+    def __init__(self, name: str, channel_model: Callable):
         """
-        :param channel_model: a function which receives channel outputs anr returns relevant message
         :param name: optional name of node
+        :param channel_model: a function which receives channel outputs anr returns relevant message
         """
         self.channel_model = channel_model
         self.channel_symbol: int = None  # currently assuming hard channel symbols
@@ -73,5 +96,5 @@ class VNode(Node):
             [msg for uid, msg in self.received_messages.items() if uid != requester_uid]
         )
 
-    def llr(self) -> np.float_:
+    def estimate(self) -> np.float_:
         return self.channel_llr + np.sum(list(self.received_messages.values()))
