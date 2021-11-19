@@ -3,3 +3,5 @@
 /example_networkx.py
 /example_pyvis.py
 *.DS_Store
+/belief_propagation_ldpc.egg-info/
+/dist/
