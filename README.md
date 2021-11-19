@@ -6,6 +6,9 @@ LDPC decoder.
 If you see bug, wish suggest something or contribute please open an issue.
 Alternatively you can also contact me via [email](mailto:yairmazal@gmail.com?subject=[GitHub]%20Belief%20Propagation).
 
+For more information on LDPC codes and belief propagation on Tanner graphs visit mt Github pages site:
+https://yairmz.github.io/LDPC/.
+
 ---
 
 ## API
