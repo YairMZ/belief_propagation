@@ -3,7 +3,7 @@
 This repo is aimed at providing an example implementation of belief propagation on Tanner graphs as used by a standard
 LDPC decoder.
 
-If you see bug, wish suggest something or contribute please open an [issue](./issues/new/choose).
+If you see bug, wish suggest something or contribute please open an issue.
 Alternatively you can also contact me via [email](mailto:yairmazal@gmail.com?subject=[GitHub]%20Belief%20Propagation).
 
 ---
