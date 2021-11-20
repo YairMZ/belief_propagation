@@ -4,10 +4,10 @@ from networkx.algorithms import bipartite
 tg = TannerGraph()
 # add 10 variable nodes
 for i in range(10):
-    tg.add_v_node(name="v"+str(i), channel_model=bsc_llr(0.1))
+    tg.add_v_node(name="v"+str(i), channel_model=bsc_llr(0.1), ordering_key=i)
 # add 5 check nodes
-for i in range(5):
-    tg.add_c_node(name="c"+str(i))
+for j in range(5):
+    tg.add_c_node(name="c"+str(j), ordering_key=j)
 
 # add a bunch of edges
 edges = {("v0", "c0"), ("v0", "c1"), ("v1", "c0"), ("v1", "c2"), ("v2", "c0"), ("v2", "c3"), ("v3", "c0"), ("v3", "c4"),

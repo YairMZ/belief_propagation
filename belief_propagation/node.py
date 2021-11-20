@@ -15,14 +15,15 @@ class Node(ABC):
     """
     _uid_generator = itertools.count()
 
-    def __init__(self, name: str) -> None:
+    def __init__(self, name: str = "", ordering_key: int = None) -> None:
         """
         :param name: name of node
         """
-        self.name = name
         self.uid = next(Node._uid_generator)
-        self.neighbors: dict[int, Node] = {}
-        self.received_messages: dict[int, Any] = {}  # keys as senders, values as messages
+        self.name = name if name else str(self.uid)
+        self.ordering_key = ordering_key if ordering_key is not None else str(self.uid)
+        self.neighbors: dict[int, Node] = {}  # keys as senders uid
+        self.received_messages: dict[int, Any] = {}  # keys as senders uid, values as messages
 
     def register_neighbor(self, neighbor: Node) -> None:
         self.neighbors[neighbor.uid] = neighbor
@@ -54,12 +55,12 @@ class Node(ABC):
     def __eq__(self, other):
         if not isinstance(other, Node):
             return NotImplemented
-        return self.name == other.name
+        return self.ordering_key == other.ordering_key
 
     def __lt__(self, other):
         if not isinstance(other, Node):
             return NotImplemented
-        return self.name < other.name
+        return self.ordering_key < other.ordering_key
 
 
 class CNode(Node):
@@ -76,7 +77,7 @@ class CNode(Node):
 
 
 class VNode(Node):
-    def __init__(self, name: str, channel_model: Callable):
+    def __init__(self, name: str, channel_model: Callable, ordering_key: int):
         """
         :param name: optional name of node
         :param channel_model: a function which receives channel outputs anr returns relevant message
@@ -84,7 +85,7 @@ class VNode(Node):
         self.channel_model = channel_model
         self.channel_symbol: int = None  # currently assuming hard channel symbols
         self.channel_llr: np.float_ = None
-        super().__init__(name)
+        super().__init__(name, ordering_key)
 
     def initialize(self, channel_symbol):
         self.channel_symbol = channel_symbol
