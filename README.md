@@ -14,7 +14,7 @@ https://yairmz.github.io/LDPC/.
 ## Installation
 
 ```shell
-python -m pip install belief-propagation-ldpc
+pip install belief-propagation-ldpc
 ```
 
 ---
