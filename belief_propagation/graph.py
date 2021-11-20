@@ -12,20 +12,20 @@ class TannerGraph:
         self.c_nodes: dict[int, CNode] = {}
         self.edges = set()
 
-    def add_v_node(self, name: str, channel_model: Callable, ordering_key: int) -> VNode:
+    def add_v_node(self, channel_model: Callable, ordering_key: int, name: str = "") -> VNode:
         """
         :param ordering_key: should reflect order according to parity check matrix, channel symbols in order
-        :param name: names must be unique.
+        :param name: name of node.
         :param channel_model: add an exiting node to graph. If not used a new node is created.
         """
-        node = VNode(name, channel_model, ordering_key)
+        node = VNode(channel_model, ordering_key, name)
         self.v_nodes[node.uid] = node
         return node
 
-    def add_c_node(self, name: str, ordering_key: int = None) -> CNode:
+    def add_c_node(self, name: str = "", ordering_key: int = None) -> CNode:
         """
         :param ordering_key: use only for debug purposes
-        :param name: names must be unique
+        :param name: name of node
         """
         node = CNode(name, ordering_key)
         self.c_nodes[node.uid] = node

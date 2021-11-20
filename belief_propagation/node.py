@@ -11,7 +11,7 @@ class Node(ABC):
     """Base class VNodes anc CNodes.
     Derived classes are expected to implement an "initialize" and  method a "message" which should return the message to
     be passed on the graph.
-    Nodes are ordered and deemed equal according to their name.
+    Nodes are ordered and deemed equal according to their ordering_key.
     """
     _uid_generator = itertools.count()
 
@@ -72,15 +72,15 @@ class CNode(Node):
         def phi(x):
             return -np.log(np.tanh(x/2))
         q = np.array([msg for uid, msg in self.received_messages.items() if uid != requester_uid])
-        msg = np.prod(np.sign(q))*phi(np.sum(phi(np.absolute(q))))
-        return msg
+        return np.prod(np.sign(q))*phi(np.sum(phi(np.absolute(q))))
 
 
 class VNode(Node):
-    def __init__(self, name: str, channel_model: Callable, ordering_key: int):
+    def __init__(self, channel_model: Callable, ordering_key: int, name: str = ""):
         """
-        :param name: optional name of node
         :param channel_model: a function which receives channel outputs anr returns relevant message
+        :param ordering_key: used to order nodes per their order in the parity check matrix
+        :param name: optional name of node
         """
         self.channel_model = channel_model
         self.channel_symbol: int = None  # currently assuming hard channel symbols
