@@ -8,7 +8,7 @@ H = np.array([[1, 1, 1, 1, 0, 0, 0, 0, 0, 0],
               [0, 0, 1, 0, 0, 1, 0, 1, 0, 1],
               [0, 0, 0, 1, 0, 0, 1, 0, 1, 1]])
 
-# Use it to construct a Tanner graph. Assume a BSC channel model with probability p=0.1  ofr bit flip
+# Use it to construct a Tanner graph. Assume a BSC channel model with probability p=0.1  for bit flip
 model = bsc_llr(0.1)
 tg = TannerGraph.from_biadjacency_matrix(H, channel_model=model)
 
@@ -21,3 +21,4 @@ c = np.array([1, 1, 0, 0, 1, 0, 0, 0, 0, 1])
 bp = BeliefPropagation(tg, H, max_iter=10)
 estimate, llr, decode_success = bp.decode(c)
 # You can see that the error is corrected
+np.logical_xor(c, estimate)
